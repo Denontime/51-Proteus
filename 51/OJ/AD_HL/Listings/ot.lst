@@ -1,0 +1,237 @@
+C51 COMPILER V9.60.0.0   OT                                                                01/22/2020 16:15:40 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE OT
+OBJECT MODULE PLACED IN .\Objects\ot.obj
+COMPILER INVOKED BY: D:\Keil5\C51\BIN\C51.EXE ot.c OPTIMIZE(8,SPEED) BROWSE INCDIR(C:\Users\27132\Desktop\¼ÆËãÆ÷\¼ÆËãÆ÷Ô
+                    -´Âë¹¤³Ì) DEBUG OBJECTEXTEND PRINT(.\Listings\ot.lst) TABS(2) OBJECT(.\Objects\ot.obj)
+
+line level    source
+
+   1          #include<reg52.h>                                   //°üº¬Í·ÎÄ¼þ
+   2          #include <math.h>
+   3          #include "uart.h"
+*** WARNING C318 IN LINE 3 OF ot.c: can't open file 'uart.h'
+   4          #include "display.h"
+*** WARNING C318 IN LINE 4 OF ot.c: can't open file 'display.h'
+   5          #define uint unsigned int 
+   6          #define uchar unsigned char                   //ºê¶¨Òå
+   7          sbit ale=P2^6;
+   8          sbit start=P2^7;
+   9          sbit eoc=P3^2;
+  10          sbit oe=P3^3;                                           //¶¨Òåadc0809µÄ¿ØÖÆÒý½Å
+  11          sbit adda=P2^0;
+  12          sbit addb=P2^1;
+  13          sbit addc=P2^2;                                           //adc0809µÄµØÖ·Òý½Å
+  14          //sbit rs=P2^3;
+  15          //sbit rw=P2^4;
+  16          //sbit en=P2^5;                                           //Òº¾§µÄ¿ØÖÆÒý½Å
+  17          sbit key1=P3^4;
+  18          sbit key2=P3^5;
+  19          unsigned long voltdata[8]; 
+  20          uint realvolt,i,j,k,l,t,sum,a[5];         //¶¨ÒåÈ«¾Ö±äÁ¿
+  21          unsigned char CH;
+  22          uchar add;                                                                         //µØÖ·±äÁ¿
+  23          uchar TxBuf[8];                //ËÄ¸öÏÔÊ¾µÄÎ»
+  24          unsigned char t0Count;
+  25          unsigned char flagAu=1;
+  26          uchar code t1[]={"DC Voltmeter:IN "};
+  27          uchar code t2[]={" (0~20V):  .  V "};
+  28          uchar code t3[]={"      Hello!    "};
+  29          uchar code t4[]={"     Welcome!   "};                 //³õÊ¼»¯ÏÔÊ¾
+  30          
+  31          /*
+  32          º¯ÊýËµÃ÷
+  33          */ 
+  34          void addselect()                //Á¿³ÌÑ¡Ôñ
+  35          {
+  36   1        CH++;                                                //Í¨µÀºÅ¼Ó
+  37   1        if(CH>7)                                        //×î´óµ½7                  ·ûºÅ&£º°´Î»Óë·ûºÅ£¬¶þ½øÖÆµÄ¶Ô
+             -Ó¦Î»Èç¹û¶¼Îª1£¬ÄÇÃ´½á¹ûµÄ¶ÔÓ¦Î»¾ÍÎª1£¬·ñÔòÎª0
+  38   1        CH=0;                                                //ÇåÁã£¬Ò»¹²°Ë¸öÍ¨µÀ0 1 2 3 4 5 6 7£¬¶ÔÓ¦¶þ½øÖÆÊÇ00
+             -00.0001.0010.0011.0100.0101.0110.0111
+  39   1        adda=CH&0x01;                                //ÀýÈç5Í¨µÀ¼ÆËã·½·¨£º½«Í¨µÀ¶ÔÓ¦µÄ¶þ½øÖÆ0101&0001£¬½á¹û¾ÍÊÇ0
+             -001£¬¸³Öµ¸øadda£¨Òý½ÅÖ»ÄÜ½ÓÊÜ×îµÍÎ»µÄÊý¾Ý£¬Ö»ÓÐ1ºÍ0£©£¬ÄÇÃ´addaÒý½Å¾ÍÊÇ¸ßµçÆ½
+  40   1        addb=(CH&0x02)>>1;                //È»ºó½«Í¨µÀ5µÄ¶þ½øÖÆ0101&0010£¬½á¹û¾ÍÊÇ0000£¨ÒòÎªËùÓÐÎ»¶¼²»Í¬£©£¬È»ºó
+             -Õû×éÊý¾ÝÓÒÒÆÒ»Î»£¬¸³Öµ¸øaddb£¬ÄÇÃ´addbÒý½Å¾ÍÊÇµÍµçÆ½
+  41   1        addc=(CH&0x04)>>2;                 //È»ºó½«Í¨µÀ5µÄ¶þ½øÖÆ0101&0100£¬½á¹û¾ÍÊÇ0100£¬È»ºóÕû×éÊý¾ÝÓÒÒÆÁ½Î»£¬¸
+             -³Öµ¸øaddc£¬ÄÇÃ´addcÒý½Å¾ÍÊÇ¸ßµçÆ½£¬×îºóÐ¾Æ¬µÄÍ¨µÀÑ¡ÔñÒý½ÅµÄ×´Ì¬¾ÍÊÇ101£¬ÔòÑ¡ÔñµÄ¾ÍÊÇÍ¨µÀ5ÁË
+  42   1        delay(5);                                        //¶ÌÑÓÊ±
+*** WARNING C206 IN LINE 42 OF ot.c: 'delay': missing function-prototype
+*** ERROR C267 IN LINE 42 OF ot.c: 'delay': requires ANSI-style prototype
+  43   1      }
+  44          uint adtrans()                         //AD×ª»»
+  45          {
+C51 COMPILER V9.60.0.0   OT                                                                01/22/2020 16:15:40 PAGE 2   
+
+  46   1              addselect();
+  47   1              sum=0;                     //ÂË²¨¿ªÊ¼
+  48   1              for (i=0;i<5;i++)           
+  49   1              {
+  50   2                      ale=1;
+  51   2                      ale=0;
+  52   2                      start=1;                         //Æô¶¯AD×ª»»¡£
+  53   2                      start=0;
+  54   2                      while(eoc==0);                 //µÈ´ý×ª»»½áÊø¡£
+  55   2                      oe=1;
+  56   2                      a[i]=P1;             //³öÈë×ª»»½á¹û¡£
+  57   2                      delay(5);                  ////Ã¿¸ô5usAD×ª»»²¢²É¼¯Ò»´ÎÊý¾Ý£¬½«µÃµ½µÄÊýÖµ´æÈëÊý×éÖÐ
+  58   2              }
+  59   1              for (j=0;j<4;j++)                                
+  60   1                      for(i=0;i<4-j;i++)
+  61   1                              if(a[i]>a[i+1])
+  62   1                              {
+  63   2                                      t=a[i];
+  64   2                                      a[i]=a[i+1];
+  65   2                                      a[i+1]=t;
+  66   2                              }
+  67   1              for(i=1;i<4;i++)
+  68   1              {
+  69   2                      sum+=a[i];
+  70   2              }                                  //²ÉÓÃÃ°ÅÝ·¨±È½Ï£¬È¡ÖÐ¼ä3¸öÊýÖµ
+  71   1              voltdata[CH]=sum/3;
+  72   1              
+  73   1              delay(1);
+  74   1              oe=0;
+  75   1              voltdata[CH]=4*(100*voltdata[CH])/51;                   //´¦ÀíÔËËã½á¹û¡£
+  76   1              //voltdata[CH]ÊÇ¶ÁÈ¡µ½µÄadÖµ£¬³ËÒÔ100ÊÇÈÃÐ¡ÊýµãºóÒÆÁ½Î»£¬³ËÒÔ4ÊÇÁ¿³ÌÀ©´óËÄ±¶Ò²¾ÍÊÇ5*4=20V£¬È»ºó³ýÒ
+             -Ô51£¨ºÍ³ËÒÔ0.0196Ò»Ñù£©µÃµ½Êµ¼ÊµÄµçÑ¹Öµ
+  77   1              //8Î»AD×îÐ¡·Ö±æÂÊ¾ÍÊÇ0.0196V
+  78   1              return voltdata[CH];
+  79   1      }
+  80          void disvolt()                                //ÏÔÊ¾º¯Êý        
+  81          {
+  82   1              realvolt=voltdata[add];
+  83   1              writelcd_cmd(0x80);
+  84   1              writelcd_dat('1'+add);
+  85   1              TxBuf[1]=realvolt/1000+0x30;
+  86   1              TxBuf[2]=realvolt/100%10+0x30;
+  87   1              TxBuf[4]=realvolt/10%10+0x30;
+  88   1              TxBuf[5]=realvolt%10+0x30;                 //½«µçÑ¹Öµ·Ö³É4¸öÒ»Î»Êý£¬·½±ãÏÔÊ¾
+  89   1              writelcd_cmd(0x82);           //ÏÔÊ¾µçÑ¹Öµ
+  90   1              writelcd_dat(TxBuf[1]);
+  91   1              writelcd_dat(TxBuf[2]);
+  92   1              writelcd_cmd(0x85);
+  93   1              writelcd_dat(TxBuf[4]);
+  94   1              writelcd_dat(TxBuf[5]);
+  95   1              realvolt=voltdata[add+1];
+  96   1              writelcd_cmd(0x88);
+  97   1              writelcd_dat('1'+add+1);
+  98   1              TxBuf[1]=realvolt/1000+0x30;
+  99   1              TxBuf[2]=realvolt/100%10+0x30;
+ 100   1              TxBuf[4]=realvolt/10%10+0x30;
+ 101   1              TxBuf[5]=realvolt%10+0x30;                 //½«µçÑ¹Öµ·Ö³É4¸öÒ»Î»Êý£¬·½±ãÏÔÊ¾
+ 102   1              writelcd_cmd(0x8a);           //ÏÔÊ¾µçÑ¹Öµ
+ 103   1              writelcd_dat(TxBuf[1]);
+ 104   1              writelcd_dat(TxBuf[2]);
+ 105   1              writelcd_cmd(0x8d);
+ 106   1              writelcd_dat(TxBuf[4]);
+C51 COMPILER V9.60.0.0   OT                                                                01/22/2020 16:15:40 PAGE 3   
+
+ 107   1              writelcd_dat(TxBuf[5]);
+ 108   1      
+ 109   1              realvolt=voltdata[add+2];
+ 110   1              writelcd_cmd(0xc0);
+ 111   1              writelcd_dat('1'+add+2);
+ 112   1              TxBuf[1]=realvolt/1000+0x30;
+ 113   1              TxBuf[2]=realvolt/100%10+0x30;
+ 114   1              TxBuf[4]=realvolt/10%10+0x30;
+ 115   1              TxBuf[5]=realvolt%10+0x30;                 //½«µçÑ¹Öµ·Ö³É4¸öÒ»Î»Êý£¬·½±ãÏÔÊ¾
+ 116   1              writelcd_cmd(0xc2);           //ÏÔÊ¾µçÑ¹Öµ
+ 117   1              writelcd_dat(TxBuf[1]);
+ 118   1              writelcd_dat(TxBuf[2]);
+ 119   1              writelcd_cmd(0xc5);
+ 120   1              writelcd_dat(TxBuf[4]);
+ 121   1              writelcd_dat(TxBuf[5]);
+ 122   1              realvolt=voltdata[add+3];
+ 123   1              writelcd_cmd(0xc8);
+ 124   1              writelcd_dat('1'+add+3);
+ 125   1              TxBuf[1]=realvolt/1000+0x30;
+ 126   1              TxBuf[2]=realvolt/100%10+0x30;
+ 127   1              TxBuf[4]=realvolt/10%10+0x30;
+ 128   1              TxBuf[5]=realvolt%10+0x30;                 //½«µçÑ¹Öµ·Ö³É4¸öÒ»Î»Êý£¬·½±ãÏÔÊ¾
+ 129   1              writelcd_cmd(0xca);           //ÏÔÊ¾µçÑ¹Öµ
+ 130   1              writelcd_dat(TxBuf[1]);
+ 131   1              writelcd_dat(TxBuf[2]);
+ 132   1              writelcd_cmd(0xcd);
+ 133   1              writelcd_dat(TxBuf[4]);
+ 134   1              writelcd_dat(TxBuf[5]);
+ 135   1      }
+ 136          void anjian()                                //°´¼üÉ¨Ãèº¯Êý
+ 137          {
+ 138   1      
+ 139   1              if(key1==0)                                //µÚÒ»¸ö°´¼ü°´ÏÂ
+ 140   1              {
+ 141   2                       delay(20);
+ 142   2                      if(key1==0)
+ 143   2                      {
+ 144   3                       if(add==0)
+ 145   3                       add=4;
+ 146   3                       else
+ 147   3                       add=0;
+ 148   3                       flagAu=0;
+ 149   3                       while(key1==0);
+ 150   3                      }
+ 151   2              }
+ 152   1              if(key2==0)
+ 153   1              {
+ 154   2                       delay(20);
+ 155   2                      if(key2==0)
+ 156   2                      {
+ 157   3                       
+ 158   3                   flagAu=1;
+ 159   3                       while(key2==0);
+ 160   3                      }
+ 161   2              }
+ 162   1                                               //ÇÐ»»µµÎ»
+ 163   1              TxBuf[6]=CH+0x31;
+ 164   1      
+ 165   1      }
+ 166          void init()                                         //³õÊ¼»¯º¯Êý
+ 167          {
+ 168   1      
+C51 COMPILER V9.60.0.0   OT                                                                01/22/2020 16:15:40 PAGE 4   
+
+ 169   1              add=0;                                
+ 170   1                      addselect();
+ 171   1              lcd_init();                                //Òº¾§ÏÔÊ¾³õÊ¼»¯
+ 172   1          write_string(0x80,"1:  .  V2:  .  V");
+ 173   1              write_string(0xc0,"3:  .  V4:  .  V");
+ 174   1              TxBuf[0]='
+*** ERROR C305 IN LINE 174 OF ot.c: unterminated string/char const
+ 175   1      
+ 176   1      
+ 177   1      ;
+ 178   1              TxBuf[3]='.';
+ 179   1              TxBuf[7]='\0';
+ 180   1      }
+ 181          void main()                                  //Ö÷³ÌÐò
+ 182          {
+ 183   1              init();                                  //µ÷ÓÃ³õÊ¼»¯º¯Êý
+ 184   1              Uart_init();
+ 185   1              while(1)                          //½øÈëwhileÑ­»·
+ 186   1              {   
+ 187   2                      anjian();                  //É¨Ãè°´¼ü
+ 188   2                      adtrans();                  //adº¯Êý
+ 189   2                      disvolt();                  //ÏÔÊ¾µçÑ¹
+ 190   2              }                           
+ 191   1      }
+ 192           void timer0() interrupt 1
+ 193           {
+ 194   1        TH0=0x4c;
+ 195   1        TL0=0x00;
+ 196   1        t0Count++;
+ 197   1        if(t0Count>=40)
+ 198   1        {
+ 199   2         t0Count=0;
+ 200   2         if(flagAu==1)
+ 201   2         {
+ 202   3          if(add==0)
+ 203   3              add=4;
+ 204   3              else
+ 205   3              add=0;
+ 206   3         }
+ 207   2        }
+ 208   1       }
+
+C51 COMPILATION COMPLETE.  3 WARNING(S),  2 ERROR(S)

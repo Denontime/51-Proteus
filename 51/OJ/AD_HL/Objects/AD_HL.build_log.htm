@@ -1,0 +1,49 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.28.0.0
+Copyright (C) 2019 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: CAT ping, CAT, LIC=ICILQ-NSGJR-SQK09-4SYC0-XURXG-HK47K
+ 
+Tool Versions:
+Toolchain:       MDK51 Professional  Version: 9.60.0.0
+Toolchain Path:  D:\Keil5\C51\BIN
+C Compiler:      C51.exe V9.60.0.0
+Assembler:       A51.exe V8.2.7.0
+Linker/Locator:  BL51.exe V6.22.2.0
+Library Manager: LIB51.exe V4.30.1.0
+Hex Converter:   OH51.exe V2.7.0.0
+CPU DLL:         S8051.DLL V3.122.0.0
+Dialog DLL:      DP51.DLL V2.67.0.0 
+<h2>Project:</h2>
+D:\Object\STC51\OJ\AD_HL\AD_HL.uvproj
+Project File Date:  01/22/2020
+
+<h2>Output:</h2>
+Rebuild target 'Target 1'
+compiling AD_TH.c...
+compiling 1602.c...
+compiling delay.c...
+linking...
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  LCD_INIT
+    MODULE:  .\Objects\1602.obj (1602)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  _LCD_WRITE_DATA
+    MODULE:  .\Objects\1602.obj (1602)
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_DISP_CHAR?AD_TH
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?LCD_CLEAR?1602
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_STRING?1602
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?LCD_INIT?1602
+Program Size: data=90.1 xdata=0 code=2788
+Target not created.
+Build Time Elapsed:  00:00:00
+</pre>
+</body>
+</html>

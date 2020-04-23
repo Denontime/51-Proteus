@@ -1,0 +1,95 @@
+C51 COMPILER V9.60.0.0   AD_HL                                                             01/22/2020 16:15:40 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE AD_HL
+OBJECT MODULE PLACED IN .\Objects\AD_HL.obj
+COMPILER INVOKED BY: D:\Keil5\C51\BIN\C51.EXE AD_HL.c OPTIMIZE(8,SPEED) BROWSE INCDIR(C:\Users\27132\Desktop\计算器\计算
+                    -器源码工程) DEBUG OBJECTEXTEND PRINT(.\Listings\AD_HL.lst) TABS(2) OBJECT(.\Objects\AD_HL.obj)
+
+line level    source
+
+   1          //////////////////////////////////////////////////////////////////////////////////////////////
+   2          //ad采样电压值（0--5.00v）,使用AD0809芯片
+   3          //////////////////////////////////////////////////////////////////////////////////////////////
+   4          #include "reg52.h"
+   5          
+   6          //AD0809相关
+   7          sfr ADDR = P2;      //通道地址
+*** ERROR C141 IN LINE 7 OF AD_HL.c: syntax error near 'P2', expected 'const'
+   8          sbit START = P3^4;  //启动转换
+   9          sbit EOC = P1^7;    //转换结束标志
+  10          sbit OE = P3^2;    //输出使能
+  11          sbit ALE = P3^0;    //地址锁存
+  12          
+  13          unsigned char ad_value=0 ;        //原始ad值
+  14          
+  15          void delay100us(int us) //延时100us子程序
+  16          {
+  17   1      unsigned int i;
+  18   1      unsigned char j;
+  19   1      for(i=0;i<us;i++)
+  20   1      { 
+  21   2      for(j=0;j<2;j++);
+  22   2      for(j=0;j<102;j++);
+  23   2      }
+  24   1      }
+  25          
+  26          
+  27          void delay_short(void)//短延时
+  28          {
+  29   1      unsigned char i=10;
+  30   1      while(i--);
+  31   1      }
+  32          
+  33          
+  34          
+  35          void all_init(void);       //全部初始化
+  36          void ad_samp(void);        //ad采样函数
+  37          
+  38          
+  39          void main(void)
+  40          {
+  41   1      all_init();
+  42   1      delay100us(10000);
+  43   1      while(1)
+  44   1      {
+  45   2      ad_samp();
+  46   2      
+  47   2      pwm_deal();   
+  48   2      delay100us(10000);
+  49   2      };
+  50   1      }
+  51          
+  52          
+  53          void all_init(void)
+C51 COMPILER V9.60.0.0   AD_HL                                                             01/22/2020 16:15:40 PAGE 2   
+
+  54          {
+  55   1      //100us定时器初始化
+  56   1      TMOD = 0x02;
+  57   1      TH0 = 0x00;
+  58   1      TL0 = 0x9c;
+  59   1      //开中断
+  60   1      EA = 1;
+  61   1      ET1 = 1;
+  62   1      TR1 = 1;
+  63   1      }
+  64          
+  65          
+  66          void ad_samp(void)
+  67          {
+  68   1      ADDR=0x00;//选中IN0号通道
+  69   1      ALE=1;    delay_short();
+  70   1      START=1;    delay_short();
+  71   1      ALE=0;    delay_short();      
+  72   1      START=0;    delay_short();
+  73   1      while(EOC==1);
+  74   1      delay_short();
+  75   1      while(EOC==0);
+  76   1      delay_short();
+  77   1      OE=1;delay_short();
+  78   1      ad_value=P0;
+  79   1      OE=0;delay_short();
+  80   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)

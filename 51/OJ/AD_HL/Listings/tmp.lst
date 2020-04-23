@@ -1,0 +1,389 @@
+C51 COMPILER V9.60.0.0   TMP                                                               01/22/2020 16:15:40 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TMP
+OBJECT MODULE PLACED IN .\Objects\tmp.obj
+COMPILER INVOKED BY: D:\Keil5\C51\BIN\C51.EXE tmp.c OPTIMIZE(8,SPEED) BROWSE INCDIR(C:\Users\27132\Desktop\计算器\计算器
+                    -源码工程) DEBUG OBJECTEXTEND PRINT(.\Listings\tmp.lst) TABS(2) OBJECT(.\Objects\tmp.obj)
+
+line level    source
+
+   1          #include <reg52.h>                                   //包含头文件
+   2          #include <intrins.h>
+   3          
+   4          #define uint unsigned int
+   5          #define uchar unsigned char
+   6          
+   7          sbit P1_0=P3^5;
+   8          uint PERIOD=2000;
+   9          uint HI_NUM=200;
+  10          uint LOW_NUM;
+  11          uchar HIGAO,HIDI;
+  12          uchar LOWGAO,LOWDI;
+  13          
+  14          sbit ale=P2^6;
+  15          sbit start=P2^7;
+  16          sbit eoc=P3^3;
+  17          sbit oe=P3^4;                                             //定义adc0809的控制引脚
+  18          
+  19          sbit adda=P2^0;
+  20          sbit addb=P2^1;
+  21          sbit addc=P2^2;                                           //adc0809的地址引脚
+  22          
+  23          sbit clk=P3^7;                                            //adc0809时钟引脚
+  24          
+  25          sbit X9313W_INC  = P3^0;               //计数脉冲输入端，下降沿触发
+  26          sbit X9313W_UPDN = P3^1;               //方向，高电平加、低电平减
+  27          sbit X9313W_CS   = P3^2;               //片选,低电平选中开始操作
+  28          
+  29          sbit LCD1602_E   = P2^3;
+  30          sbit LCD1602_RS  = P2^4;
+  31          sbit LCD1602_RW  = P2^5;
+  32          sbit LCD1602_DATAPINS = P1;
+  33          
+  34          unsigned int  voltdata,realvolt1,realvolt,i,j,t,sum,a[5];         //定义全局变量
+  35          
+  36          void delay( int us)                      //延时函数
+  37          {
+  38   1        int aus;
+  39   1        for(aus=0;aus<us;aus++)
+  40   1          _nop_();
+  41   1      }
+  42          
+  43          void Lcd1602_Delayms(int ms)    //@11.0592MHz
+  44          {
+  45   1        unsigned char i, j, k;
+  46   1      for(k=ms;k>0;k--)
+  47   1      {
+  48   2        _nop_();
+  49   2        i = 2;
+  50   2        j = 199;
+  51   2        do
+  52   2        {
+  53   3          while (--j);
+  54   3        } while (--i);
+C51 COMPILER V9.60.0.0   TMP                                                               01/22/2020 16:15:40 PAGE 2   
+
+  55   2      }
+  56   1      }
+  57          
+  58          
+  59          int ADC()                         //采集数据
+  60          {
+  61   1              sum=0;                     //滤波开始
+  62   1              for (i=0;i<5;i++)           
+  63   1              {
+  64   2                      start=1;                         //启动AD转换。
+  65   2                      start=0;
+  66   2                      while(eoc==0);                   //等待转换结束。
+  67   2                      oe=1;
+  68   2                      a[i]=P1;                         //输入转换结果。
+  69   2                      delay(50);                       //每隔5usAD转换并采集一次数据，将得到的数值存入数组中
+  70   2              }
+  71   1              for (j=0;j<4;j++)                                
+  72   1                      for(i=0;i<4-j;i++)
+  73   1                              if(a[i]>a[i+1])
+  74   1                              {
+  75   2                                      t=a[i];
+  76   2                                      a[i]=a[i+1];
+  77   2                                      a[i+1]=t;
+  78   2                              }
+  79   1              for(i=1;i<4;i++)
+  80   1              {
+  81   2                      sum+=a[i];
+  82   2              }                                  //采用冒泡法比较，取中间3个数值
+  83   1      
+  84   1              voltdata=sum/3;
+  85   1              delay(1);
+  86   1              oe=0;
+  87   1              return voltdata;
+  88   1      }
+  89          /***********调整电阻*****************/
+  90          
+  91          /*************************************/
+  92          /*   调整电阻到第RNumber阶阻值     */
+  93          /*入口：RNumber：阶阻值0～31         */
+  94          /*出口：无                           */
+  95          /*************************************/
+  96          void X9313W_SetVol(unsigned char RNumber)
+  97          { 
+  98   1          unsigned char i;
+  99   1      
+ 100   1          X9313W_INC = 1;                   
+ 101   1          _nop_();
+ 102   1          _nop_();
+ 103   1          X9313W_CS = 0;
+ 104   1          _nop_();
+ 105   1          _nop_();
+ 106   1          X9313W_UPDN = 0;                    //设为减
+ 107   1      
+ 108   1          for(i=0;i<32;i++)
+ 109   1          {
+ 110   2              X9313W_INC = 1;
+ 111   2              _nop_();
+ 112   2              _nop_();
+ 113   2              X9313W_INC = 0;
+ 114   2              _nop_();
+ 115   2              _nop_();
+ 116   2          }                                   //减到0
+C51 COMPILER V9.60.0.0   TMP                                                               01/22/2020 16:15:40 PAGE 3   
+
+ 117   1      
+ 118   1          X9313W_UPDN = 1;                    //设为加
+ 119   1          for(i=0;i<RNumber;i++){
+ 120   2              X9313W_INC=1;
+ 121   2              _nop_();
+ 122   2              _nop_();
+ 123   2              X9313W_INC=0;
+ 124   2              _nop_();
+ 125   2              _nop_();
+ 126   2          }                                   //加到RNumber
+ 127   1           
+ 128   1          X9313W_INC = 1;                     //电阻值保存
+ 129   1          _nop_();
+ 130   1          _nop_();
+ 131   1          X9313W_CS = 1;
+ 132   1          _nop_();
+ 133   1          _nop_();
+ 134   1          X9313W_UPDN = 1;
+ 135   1          _nop_();
+ 136   1          _nop_();
+ 137   1          X9313W_INC = 1;
+ 138   1      }
+ 139          
+ 140          /*************************************/
+ 141          /*     调整电阻增加RNumber阶阻值   */
+ 142          /*入口：RNumber：阶阻值0～31         */
+ 143          /*出口：无                           */
+ 144          /*************************************/
+ 145          
+ 146          void X9313W_IncVol(unsigned char RNumber)
+ 147          { 
+ 148   1          unsigned char i;
+ 149   1           
+ 150   1          X9313W_INC = 1;                   
+ 151   1          _nop_();
+ 152   1          _nop_();
+ 153   1          X9313W_CS = 0;
+ 154   1          _nop_();
+ 155   1          _nop_();
+ 156   1          X9313W_UPDN = 1;                  //加RNumber个指定值
+ 157   1          
+ 158   1          for(i=0;i<RNumber;i++)
+ 159   1          {
+ 160   2              X9313W_INC=1;
+ 161   2              _nop_();
+ 162   2              _nop_();
+ 163   2              X9313W_INC=0;
+ 164   2              _nop_();
+ 165   2              _nop_();
+ 166   2          }
+ 167   1           
+ 168   1          X9313W_INC = 1;                    //电阻值保存
+ 169   1          _nop_();
+ 170   1          _nop_();
+ 171   1          X9313W_CS = 1;
+ 172   1          _nop_();
+ 173   1          _nop_();
+ 174   1          X9313W_UPDN = 1;
+ 175   1          _nop_();
+ 176   1          _nop_();
+ 177   1          X9313W_INC = 1;
+ 178   1      }
+C51 COMPILER V9.60.0.0   TMP                                                               01/22/2020 16:15:40 PAGE 4   
+
+ 179          /*************************************/
+ 180          /*     调整电阻减少RNumber阶阻值      */
+ 181          /*入口：RNumber：阶阻值0～31          */
+ 182          /*出口：无                            */
+ 183          /*************************************/
+ 184          
+ 185          void X9313W_DecVol(unsigned char RNumber)
+ 186          {
+ 187   1          unsigned char i;
+ 188   1          
+ 189   1          X9313W_INC = 1;                   
+ 190   1          _nop_();
+ 191   1          _nop_();
+ 192   1          X9313W_CS = 0;
+ 193   1          _nop_();
+ 194   1          _nop_();
+ 195   1          X9313W_UPDN = 0;                    //减RNumber个指定值
+ 196   1          for(i=0;i<RNumber;i++){
+ 197   2              X9313W_INC=1;
+ 198   2              _nop_();
+ 199   2              _nop_();
+ 200   2              X9313W_INC=0;
+ 201   2              _nop_();
+ 202   2              _nop_();
+ 203   2          }
+ 204   1           
+ 205   1          X9313W_INC = 1;                    //电阻值保存
+ 206   1          _nop_();
+ 207   1          _nop_();
+ 208   1          X9313W_CS = 1;
+ 209   1          _nop_();
+ 210   1          _nop_();
+ 211   1          X9313W_UPDN = 1;
+ 212   1          _nop_();
+ 213   1          _nop_();
+ 214   1          X9313W_INC = 1;
+ 215   1      }
+ 216          
+ 217          void init()                             //初始化程序
+ 218          {
+ 219   1          P1_0=0;
+ 220   1          LOW_NUM=PERIOD-HI_NUM;
+ 221   1          HIGAO=(65536-HI_NUM)/256;
+ 222   1          HIDI=(65536-HI_NUM)%256;
+ 223   1          LOWGAO=(65536-LOW_NUM)/256;
+ 224   1          LOWDI=(65536-LOW_NUM)%256;
+ 225   1      
+ 226   1          TMOD=0x01;
+ 227   1          TH0=HIGAO;
+ 228   1          TL0=HIDI;
+ 229   1        
+ 230   1          EA =1;                              //打开CPU总中断
+ 231   1          ET0=1;                              //定时器T0的溢出中断允许
+ 232   1          ET1=1;                              //定时器T1的溢出中断允许
+ 233   1          TR0=1;
+ 234   1          TR1=1;                              
+ 235   1          EX0=1;                              //外部中断0允许
+ 236   1          IT0=1;                              //从高到低的负跳变有效
+ 237   1        
+ 238   1          start = 0;
+ 239   1          oe = 0;
+ 240   1          clk = 0;
+C51 COMPILER V9.60.0.0   TMP                                                               01/22/2020 16:15:40 PAGE 5   
+
+ 241   1        
+ 242   1          adda=0;
+ 243   1          addb=0;
+ 244   1          addc=0;
+ 245   1          ale  = 0;
+ 246   1          ale  = 1;                  //AD输入线路选择
+ 247   1        
+ 248   1          X9313W_SetVol(15);                  //将电阻器设为中间值
+ 249   1          delay(1000);
+ 250   1      }
+ 251          
+ 252          void LcdWriteCom(uchar com)      //写入命令
+ 253          {
+ 254   1            LCD1602_E = 0;         //使能清零
+ 255   1      
+ 256   1            LCD1602_RS = 0;        //选择发送命令
+ 257   1            LCD1602_RW = 0;        //选择写入
+ 258   1      
+ 259   1            LCD1602_DATAPINS = com;    //放入命令
+ 260   1            Lcd1602_Delayms(1);                   //等待数据稳定
+ 261   1      
+ 262   1      
+ 263   1            LCD1602_E = 1;             //写入时序，一个下降沿，将命令传达到LCD
+ 264   1            Lcd1602_Delayms(5);        //保持时间
+ 265   1            LCD1602_E = 0;
+ 266   1      }
+ 267          
+ 268          void LcdWriteData(uchar dat) //写入数据
+ 269          
+ 270          {
+ 271   1      
+ 272   1      LCD1602_E = 0; //使能清零
+ 273   1      LCD1602_RS = 1; //选择输入数据
+ 274   1      LCD1602_RW = 0; //选择写入
+ 275   1      LCD1602_DATAPINS = dat; //写入数据
+ 276   1      Lcd1602_Delayms(1);
+ 277   1      LCD1602_E = 1; //写入时序，一个下降沿
+ 278   1      Lcd1602_Delayms(5); //保持时间
+ 279   1      LCD1602_E = 0;
+ 280   1      
+ 281   1      }
+ 282          
+ 283          void  LCD1602_display()
+ 284          
+ 285          {
+ 286   1      
+ 287   1            unsigned int i;
+ 288   1            unsigned char  cu[9]="Current:";
+ 289   1      
+ 290   1      
+ 291   1            for(i=0;i<8;i++) //第一行显示‘current’
+ 292   1      
+ 293   1           {
+ 294   2                      LcdWriteData(cu[i]);
+ 295   2            }
+ 296   1      
+ 297   1            LcdWriteCom(0x80+0x40);
+ 298   1      
+ 299   1            LcdWriteData(voltdata);
+ 300   1      
+ 301   1      }
+ 302          
+C51 COMPILER V9.60.0.0   TMP                                                               01/22/2020 16:15:40 PAGE 6   
+
+ 303          void LcdInit()                                         //LCD初始化子程序
+ 304          
+ 305          {
+ 306   1           LcdWriteCom(0x38);  //功能设定 0011 1000 （8位数据线、显示2行、每个字符为5*7点阵）
+ 307   1      
+ 308   1            //
+ 309   1            LcdWriteCom(0x0c);  //显示开关控制 0000 1100（或+光标不闪烁0x0d：0000 1101）（开显示、不开光标、光标
+             -闪烁或不闪烁）
+ 310   1            LcdWriteCom(0x06);  //进入模式设置 0000 0110（写入数据后光标右移一位及显示屏不动）
+ 311   1            LcdWriteCom(0x01);  //清屏
+ 312   1            LcdWriteCom(0x80);  //设置数据指针起点 //DB7为高电平
+ 313   1      
+ 314   1      }
+ 315          
+ 316          
+ 317          
+ 318          void main()                               //主程序
+ 319          {
+ 320   1          init();
+ 321   1          LcdInit();
+ 322   1              while(1)                          //进入while循环
+ 323   1              { 
+ 324   2                ADC();
+ 325   2                if(voltdata>128)                //判断输入
+ 326   2                {
+ 327   3                       X9313W_IncVol(voltdata-128);               //调大变阻器
+ 328   3                       LCD1602_display();                         //显示
+ 329   3                }
+ 330   2                else
+ 331   2                {
+ 332   3                       X9313W_DecVol(128-voltdata);               //调小变阻器
+ 333   3                       LCD1602_display();                         //显示
+ 334   3                }
+ 335   2              }                           
+ 336   1      }
+ 337          
+ 338          void timer0() interrupt 1          // 输出500kHz 方波 
+ 339          {
+ 340   1          if(P1_0==1)
+ 341   1          {
+ 342   2             P1_0=0;
+ 343   2             TH0=LOWGAO;
+ 344   2             TL0=LOWDI;
+ 345   2          }
+ 346   1          else
+ 347   1          {
+ 348   2             P1_0=1;
+ 349   2             TH0=HIGAO;
+ 350   2             TL0=HIDI;
+ 351   2          }
+ 352   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    845    ----
+   CONSTANT SIZE    =      9    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     34       9
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.60.0.0   TMP                                                               01/22/2020 16:15:40 PAGE 7   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,236 @@
+C51 COMPILER V9.60.0.0   TIMER                                                             12/05/2019 14:45:23 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN .\Objects\timer.obj
+COMPILER INVOKED BY: D:\Keil5\C51\BIN\C51.EXE timer.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\timer
+                    -.lst) TABS(2) OBJECT(.\Objects\timer.obj)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          typedef unsigned int u16;
+   3          typedef unsigned char u8;
+   4          unsigned char code smgduan[10]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};          //œ‘ æ0~Fµƒ÷µ
+   5          unsigned char Time;                                                                                     //
+             -”√¿¥¥Ê∑≈∂® ± ±º‰
+   6          
+   7          //--…˘√˜»´æ÷∫Ø ˝--//
+   8          void DigDisplay();                                                                           //∂ØÃ¨œ‘ æ∫Ø 
+             -˝
+   9          void DigDisplay1();                                                                          //∂ØÃ¨œ‘ æ∫Ø 
+             -˝
+  10          void Timer0Cofig(void);
+  11          void delay(u16 i);
+  12          u8 m,f,s;
+  13          u8 nian=19,yue=3,ri=17;
+  14          sbit K4=P1^3;
+  15          sbit K3=P1^2;
+  16          sbit K2=P1^1;
+  17          sbit K1=P1^0;
+  18          u8 x;                                                                                        //«–ªªœ‘ æΩÁ√
+             -Ê
+  19          u8 x1;                                                                                       //‘›Õ£ ±º‰£¨Ω
+             -¯»Îµ˜ ±
+  20          void main(void)
+  21          {               
+  22   1              P2=0X00;
+  23   1              Timer0Cofig();
+  24   1              P1=0XFF;
+  25   1              while(1)
+  26   1              {
+  27   2            if(!K4)                                                                                     //«–ªªœ‘
+             - æΩÁ√Ê
+  28   2                {
+  29   3                delay(10);
+  30   3                if(!K4)
+  31   3                x=!x;
+  32   3                while(!K4);                                                                            //µ»¥˝∞¥º
+             -¸À…ø™
+  33   3                }
+  34   2           if(!K1)
+  35   2                {
+  36   3                delay(10);
+  37   3                if(!K1)
+  38   3                {
+  39   4                TR0=!TR0;
+  40   4                x1=!x1;
+  41   4                }
+  42   3                while(!K1);                                                                             //µ»¥˝∞¥
+             -º¸À…ø™
+  43   3                }
+  44   2                 if(!K2&&x1)
+  45   2                {
+  46   3                delay(10);
+C51 COMPILER V9.60.0.0   TIMER                                                             12/05/2019 14:45:23 PAGE 2   
+
+  47   3                if(!K2&&x1)
+  48   3                f++;
+  49   3                while(!K2&&x1);                                                                         //µ»¥˝∞¥
+             -º¸À…ø™
+  50   3                }
+  51   2                 if(!K3&&x1)
+  52   2                {
+  53   3                delay(10);
+  54   3                if(!K3&&x1)
+  55   3                s++;
+  56   3                while(!K3&&x1);                                                                         //µ»¥˝∞¥
+             -º¸À…ø™
+  57   3                }
+  58   2                      if(m==60)                                                                             //√Î
+             -Ω¯Œª
+  59   2                      {
+  60   3                      m=0;
+  61   3                      f++;
+  62   3                      }
+  63   2                      if(f==60)                                                                             //∑÷
+             -÷”Ω¯Œª
+  64   2                      {
+  65   3                      f=0;
+  66   3                      s++;
+  67   3                      }
+  68   2                      if(s==24)                                                                             //–°
+             - ±Ω¯Œª
+  69   2                      {
+  70   3                      s=0;
+  71   3                      ri++;
+  72   3                      }
+  73   2                      if(!x)
+  74   2                      DigDisplay();
+  75   2                      if(x)
+  76   2                      DigDisplay1();                                               
+  77   2         }
+  78   1      }
+  79          void delay(u16 i)
+  80          {
+  81   1              while(i--);       
+  82   1      }
+  83          void DigDisplay()                                                                            //œ‘ æ√Î∑÷ ±∫
+             -Ø ˝
+  84          {
+  85   1         u16 i,i1;                                                                                 //œ‘ æ√Î
+  86   1         i=m%10;
+  87   1         i1=(m/10)%10;
+  88   1         P2=0X80;
+  89   1         P0=smgduan[i];
+  90   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+  91   1         P2=0X40;
+  92   1         P0=smgduan[i1];
+  93   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+  94   1         P2=0X20;                                                                                         //∑÷∏Ù
+             -∑˚
+  95   1         P0=0xBF;
+  96   1         delay(1);
+  97   1      //////////////////////////////œ‘ æ∑÷÷”
+  98   1         i=f%10;
+  99   1         i1=(f/10)%10;
+C51 COMPILER V9.60.0.0   TIMER                                                             12/05/2019 14:45:23 PAGE 3   
+
+ 100   1         P2=0X10;
+ 101   1         P0=smgduan[i];
+ 102   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+ 103   1         P2=0X08;
+ 104   1         P0=smgduan[i1];
+ 105   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+ 106   1         P2=0X04;          
+ 107   1         P0=0xBF;
+ 108   1         delay(1);
+ 109   1         //////////////////////////////œ‘ æ–° ±
+ 110   1         i=s%10;
+ 111   1         i1=(s/10)%10;
+ 112   1         P2=0X02;
+ 113   1         P0=smgduan[i];
+ 114   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+ 115   1         P2=0X01;
+ 116   1         P0=smgduan[i1];
+ 117   1         delay(1);
+ 118   1      ///////////////////////////////
+ 119   1              delay(80);                                                                               //º‰∏Ù“ª∂
+             -Œ ±º‰…®√Ë       
+ 120   1      }
+ 121          void DigDisplay1()                                                                           //œ‘ æƒÍ‘¬»’∫
+             -Ø ˝
+ 122          {
+ 123   1         u16 i,i1;                                                                                 //œ‘ æ»’
+ 124   1         i=ri%10;
+ 125   1         i1=(ri/10)%10;
+ 126   1         P2=0X80;
+ 127   1         P0=smgduan[i];
+ 128   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+ 129   1         P2=0X40;
+ 130   1         P0=smgduan[i1];
+ 131   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+ 132   1         P2=0X20;                                                                                        
+ 133   1         P0=0xBF;
+ 134   1         delay(1);
+ 135   1      //////////////////////////////œ‘ æ‘¬
+ 136   1         i=yue%10;
+ 137   1         i1=(yue/10)%10;
+ 138   1         P2=0X10;
+ 139   1         P0=smgduan[i];
+ 140   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+ 141   1         P2=0X08;
+ 142   1         P0=smgduan[i1];
+ 143   1         delay(1);                                                                                 //º‰∏Ù“ª∂Œ ±º
+             -‰…®√Ë
+ 144   1         P2=0X04;       
+ 145   1         P0=0xBF;
+ 146   1         delay(1);
+ 147   1         //////////////////////////////œ‘ æƒÍ
+ 148   1         i=nian%10;
+ 149   1         i1=(nian/10)%10;
+ 150   1         P2=0X02;
+ 151   1         P0=smgduan[i];
+ 152   1         delay(1);                                                                                //º‰∏Ù“ª∂Œ ±º‰
+C51 COMPILER V9.60.0.0   TIMER                                                             12/05/2019 14:45:23 PAGE 4   
+
+             -…®√Ë
+ 153   1         P2=0X01;
+ 154   1         P0=smgduan[i1];
+ 155   1         delay(1);
+ 156   1      ///////////////////////////////
+ 157   1              delay(80);                                                                              //º‰∏Ù“ª∂Œ
+             - ±º‰…®√Ë       
+ 158   1      }
+ 159          void Timer0Cofig(void)
+ 160          {
+ 161   1              TMOD = 0x01;     //∂® ±∆˜0—°‘Òπ§◊˜∑Ω Ω1
+ 162   1          TH0  = 0x3C;         //…Ë÷√≥ı º÷µ,∂® ±50MS
+ 163   1          TL0  = 0xB0;
+ 164   1          EA   = 1;             //¥Úø™◊‹÷–∂œ
+ 165   1          ET0  = 1;                 //¥Úø™∂® ±∆˜0÷–∂œ
+ 166   1          TR0  = 1;                 //∆Ù∂Ø∂® ±∆˜0       
+ 167   1      }
+ 168          void Timer0() interrupt 1
+ 169          {
+ 170   1              TH0 = 0x3C;             //…Ë÷√≥ı º÷µ
+ 171   1              TL0 = 0xB0;
+ 172   1              Time++;
+ 173   1              if(Time == 20)
+ 174   1              {
+ 175   2                      m++;
+ 176   2                      Time = 0;
+ 177   2              }
+ 178   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    586    ----
+   CONSTANT SIZE    =     10    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      9    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

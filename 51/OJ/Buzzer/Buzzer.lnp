@@ -1,0 +1,3 @@
+"Buzzer.obj" 
+TO "Buzzer" 
+PRINT(".\Listings\Buzzer.m51") RAMSIZE(256) 

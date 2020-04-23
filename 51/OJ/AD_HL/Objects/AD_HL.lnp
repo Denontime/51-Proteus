@@ -1,0 +1,5 @@
+".\Objects\AD_TH.obj",
+".\Objects\1602.obj",
+".\Objects\delay.obj" 
+TO ".\Objects\AD_HL" 
+PRINT(".\Listings\AD_HL.m51") RAMSIZE(256) 

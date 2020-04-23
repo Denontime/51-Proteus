@@ -1,0 +1,58 @@
+C51 COMPILER V9.60.0.0   MCP41010                                                          01/22/2020 16:15:41 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MCP41010
+OBJECT MODULE PLACED IN .\Objects\mcp41010.obj
+COMPILER INVOKED BY: D:\Keil5\C51\BIN\C51.EXE mcp41010.c OPTIMIZE(8,SPEED) BROWSE INCDIR(C:\Users\27132\Desktop\¼ÆËãÆ÷\¼
+                    -ÆËãÆ÷Ô´Âë¹¤³Ì) DEBUG OBJECTEXTEND PRINT(.\Listings\mcp41010.lst) TABS(2) OBJECT(.\Objects\mcp41010.obj)
+
+line level    source
+
+   1          sbit RES_CS = P3^6; //Æ¬Ñ¡ 
+*** ERROR C202 IN LINE 1 OF mcp41010.c: 'P3': undefined identifier
+   2          sbit SCK = P3^5;
+*** ERROR C202 IN LINE 2 OF mcp41010.c: 'P3': undefined identifier
+   3          sbit DI = P3^4;
+*** ERROR C202 IN LINE 3 OF mcp41010.c: 'P3': undefined identifier
+   4          
+   5          
+   6          void Write_RES(uchar dat1) //µ÷ÕûÊı×ÖµçÎ»Æ÷
+*** ERROR C141 IN LINE 6 OF mcp41010.c: syntax error near 'dat1', expected ')'
+   7          {
+   8   1        uchar i,command=0x11;
+*** ERROR C141 IN LINE 8 OF mcp41010.c: syntax error near 'i', expected ';'
+*** ERROR C202 IN LINE 8 OF mcp41010.c: 'i': undefined identifier
+   9   1      //dat1=~dat1;
+  10   1        RES_CS = 0; //Æ¬Ñ¡ 
+*** ERROR C202 IN LINE 10 OF mcp41010.c: 'RES_CS': undefined identifier
+  11   1        _nop_(); 
+  12   1        SCK = 0;
+  13   1        _nop_(); 
+  14   1      
+  15   1        for(i=8;i>0;i--) //Ğ´ÃüÁî
+  16   1        {
+  17   2          command <<= 1; 
+  18   2          DI = CY;
+  19   2          _nop_(); 
+  20   2          SCK = 1;
+  21   2          _nop_(); 
+  22   2          SCK = 0;
+  23   2          _nop_(); 
+  24   2        }
+  25   1      
+  26   1        for(i=8;i>0;i--) //Ğ´Êı¾İ
+  27   1        { 
+  28   2          dat1 <<= 1;
+  29   2          DI = CY;
+  30   2          _nop_(); 
+  31   2          SCK = 1 ;
+  32   2          _nop_(); 
+  33   2          SCK = 0 ;
+  34   2          _nop_(); 
+  35   2        }
+  36   1      
+  37   1        RES_CS = 1;
+  38   1        _nop_(); 
+  39   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  7 ERROR(S)

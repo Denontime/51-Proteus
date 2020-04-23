@@ -1,0 +1,153 @@
+C51 COMPILER V9.60.0.0   OTT                                                               01/22/2020 16:15:41 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE OTT
+OBJECT MODULE PLACED IN .\Objects\ott.obj
+COMPILER INVOKED BY: D:\Keil5\C51\BIN\C51.EXE ott.c OPTIMIZE(8,SPEED) BROWSE INCDIR(C:\Users\27132\Desktop\计算器\计算器
+                    -源码工程) DEBUG OBJECTEXTEND PRINT(.\Listings\ott.lst) TABS(2) OBJECT(.\Objects\ott.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          sbit ALE = P3^1;
+   3          sbit ST = P3^0;
+   4          sbit EOC = P3^2;
+   5          sbit OE = P3^6;
+   6          sbit CLK = P3^7;
+   7          sbit wexuan1=P0^0;
+   8          sbit wexuan2=P0^1;
+   9          //sbit IN1 = P0^5;
+  10          //sbit IN2 = P0^6;
+  11          //sbit IN3 = P0^7;
+  12          unsigned int code table[]={
+  13          0xc0,0xf9,0xa4,0xb0,
+  14          0x99,0x92,0x82,0xf8,
+  15          0x80,0x90}; //段码表
+  16          unsigned int n=0,flag1=1;flag=1,ad_data,num1=0,num2=0;
+  17          void delay(xms)
+  18          {
+  19   1      unsigned int x,y;
+  20   1      for(x=xms;x>0;x--)
+  21   1      for(y=110;y>0;y--);
+  22   1      }
+  23          void display()//2位数码管显示
+  24          {
+  25   1      float a;
+  26   1      a=(float)ad_data/256*5*1000;
+  27   1      num1=(int)a/1000;
+  28   1      num2=(int)a/100-num1*10;
+  29   1      P1=table[num1];
+  30   1      wexuan1=1;
+  31   1      delay(1);
+  32   1      wexuan1=0;
+  33   1      P1=0xff;
+  34   1      P1=0x7f; //小数点
+  35   1      wexuan1=1;
+  36   1      delay(1);
+  37   1      wexuan1=0;
+  38   1      P1=0xff;
+  39   1      P1=table[num2];
+  40   1      wexuan2=1;
+  41   1      delay(1);
+  42   1      wexuan2=0;
+  43   1      P1=0xff;
+  44   1      }
+  45          void init()
+  46          {
+  47   1      ST = 0;
+  48   1      ALE = 0;
+  49   1      OE = 0;
+  50   1      CLK = 0;
+  51   1      // _EOC= 1;
+  52   1      TMOD=0x12;IP=0x09;
+  53   1      TH0=(65536-22)/256;
+  54   1      TL0=(65536-22)%256;
+C51 COMPILER V9.60.0.0   OTT                                                               01/22/2020 16:15:41 PAGE 2   
+
+  55   1      TH1=(65536-45872)/256;
+  56   1      TL1=(65536-45872)%256;
+  57   1      EA=1;
+  58   1      ET0=1;ET1=1;
+  59   1      TR0=1;TR1=1;
+  60   1      EX0=1;//打开外部中断
+  61   1      IT0=1;//从高到低的负跳变有效
+  62   1      P0=0x00;
+  63   1      }
+  64          void start() //int a,int b,int c) //选择通道
+  65          {
+  66   1      // IN1 = a;IN2 = b;IN3 = c;
+  67   1      ALE = 0;ALE = 1;
+  68   1      ST = 0;ST = 1;
+  69   1      ALE = 0;ST = 0;
+  70   1      display();
+  71   1      delay(10);
+  72   1      }
+  73          int read()
+  74          {
+  75   1      unsigned int dat;
+  76   1      P2 = 0xff;
+  77   1      OE = 1;
+  78   1      display();
+  79   1      dat = P2;
+  80   1      OE = 0;
+  81   1      return (dat);
+  82   1      }
+  83          void main()
+  84          {
+  85   1      init();
+  86   1      while(1)
+  87   1      { ST = 0;
+  88   2      ST = 1;
+  89   2      ST = 0;
+  90   2      if(n==20)
+  91   2      {
+  92   3      flag=1;
+  93   3      // display();
+  94   3      // start();
+  95   3      // while(EOC==0);//转换结束(EOC=1)读出数据后显示
+  96   3      // _EOC=0;
+  97   3      ad_data=read();
+  98   3      flag=0;
+  99   3      display();
+ 100   3      //
+ 101   3      n = 0;
+ 102   3      // display();
+ 103   3      // _EOC = 1;
+ 104   3      }
+ 105   2      display();//显示的是if 中的电压值
+ 106   2      }
+ 107   1      }
+ 108          void INTR_0() interrupt 0
+ 109          {
+ 110   1      while(1){
+ 111   2      ad_data = read();
+ 112   2      flag = 0;
+ 113   2      display();}
+ 114   1      }
+ 115          void timer0() interrupt 1 // 输出500kHz 方波 
+ 116          {
+C51 COMPILER V9.60.0.0   OTT                                                               01/22/2020 16:15:41 PAGE 3   
+
+ 117   1      CLK=~CLK;
+ 118   1      }
+ 119          void timer1() interrupt 3
+ 120          {
+ 121   1      TH1=(65536-45872)/256;
+ 122   1      TL1=(65536-45872)%256;
+ 123   1      n++;
+ 124   1      flag1=0;
+ 125   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    407    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
